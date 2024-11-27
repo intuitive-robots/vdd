@@ -1,4 +1,11 @@
-# Python Project Template
+# [NeurIPS 2024] Official code for "Variational Distillation of Diffusion Policies into Mixture of Experts"
+# (Under construction)
+# TODO: Installation instructions
+# TODO: Usage instructions
+# TODO: Citation
+# TODO: License
+# TODO: Nice Figures
+
 
 ```bash
 conda create --name <NAME>
