@@ -9,17 +9,15 @@ import torch as ch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
 
-import numpy as np
 
 import einops
 
 from common.utils.network_utils import get_lr_schedule, get_optimizer
 
-from vi.score_functions.beso_score import BesoScoreFunction
 from vi.models.joint_gmm_policy import JointGaussianMixtureModel
 from vi.models.inference_net import SoftCrossEntropyLoss
 
-from beso.envs.block_pushing.block_pushing_multimodal import BlockPushMultimodal
+# from beso.envs.block_pushing.block_pushing_multimodal import BlockPushMultimodal
 
 
 
@@ -190,32 +188,6 @@ class AmortizedVID_jointGMM(abc.ABC):
         return logging_dict
 
 
-    # def update_gating_net(self, n_steps):
-    #     inference_targets = self.agent.log_gating.exp()
-    #     inference_dataset = ch.utils.data.TensorDataset(self.train_dataset.tensors[1],
-    #                                                     inference_targets)
-    #     inference_loader = ch.utils.data.DataLoader(dataset=inference_dataset,
-    #                                                 batch_size=self.batch_size,
-    #                                                 shuffle=True)
-    #     self.agent.gating_network.trained = True
-    #     self.agent.gating_network.train()
-    #     loss_fn = SoftCrossEntropyLoss()
-    #     losses = []
-    #     for _ in range(n_steps):
-    #         for data in inference_loader:
-    #             inputs, targets = data
-    #             log_posterior_pred = self.agent.gating_network(inputs)
-    #             loss = loss_fn(log_posterior_pred, targets)
-    #             self.gating_optimizer.zero_grad()
-    #             loss.backward()
-    #             self.gating_optimizer.step()
-    #             losses.append(loss.item())
-    #
-    #     inputs = self.train_dataset.tensors[1]
-    #     gating_entropies = self.agent.gating_network.entropies(inputs)
-    #
-    #     return {'mean_gating_net_loss': sum(losses)/len(losses), 'mean_gating_entropy': gating_entropies.mean().item()}
-
     def armotized_vi_update(self, inputs, actions, goals=None):
 
         pred_means, pred_chols, pred_gatings = self.agent.forward(inputs, goals)
@@ -258,14 +230,6 @@ class AmortizedVID_jointGMM(abc.ABC):
             self.gating_lr_scheduler.step()
 
         ret_dict = {'gating_loss': loss.item()}
-        #
-        # with ch.no_grad():
-        #     for i in range(self.agent.n_components):
-        #        average_log_prob = log_probs[:, i].mean().item()
-        #        max_log_prob = log_probs[:, i].max().item()
-        #        ret_dict[f'cmp_{i}_average_log_prob'] = average_log_prob
-        #        ret_dict[f'cmp_{i}_max_log_prob'] = max_log_prob
-        #        ret_dict[f'cmp_{i}_min_log_prob'] = log_probs[:, i].min().item()
 
         return ret_dict
 
