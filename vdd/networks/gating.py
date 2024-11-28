@@ -4,7 +4,7 @@ import torch.nn as nn
 from vdd.networks.mlp import ResidualMLPNetwork
 
 
-class InferenceNet(nn.Module):
+class GatingNet(nn.Module):
     def __init__(self,
                  obs_dim,
                  n_components,
@@ -12,7 +12,7 @@ class InferenceNet(nn.Module):
                  hidden_dim,
                  device='cuda'):
 
-        super(InferenceNet, self).__init__()
+        super(GatingNet, self).__init__()
 
         self.n_components = n_components
 
