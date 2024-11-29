@@ -5,17 +5,16 @@ from torch import nn
 
 import einops
 
-from gaussian import get_gmm_head
-from gating import GatingNet
-from mlp import ResidualMLPNetwork
-
-from network_utils import str2torchdtype
+from vdd.networks.gaussian import get_gmm_head
+from vdd.networks.gating import GatingNet
+from vdd.networks.mlp import ResidualMLPNetwork
+from vdd.networks.network_utils import str2torchdtype
 
 
 class GaussianMoE(nn.Module):
     def __init__(self, num_components, obs_dim, act_dim, prior_type, cmp_init, cmp_cov_type='diag',
                  backbone = None,
-                 backbone_out_dim = None,
+                 backbone_out_dim = 2,
                  cmp_mean_hidden_dims = 64,
                  cmp_mean_hidden_layers = 2,
                  cmp_cov_hidden_dims = 64,
@@ -73,10 +72,11 @@ class GaussianMoE(nn.Module):
         if self.backbone is not None:
             x = self.backbone(states, goals, train=train)
         else:
-            x = torch.cat([states, goals], dim=-1)
+            x = torch.cat([states, goals], dim=-1) if goals is not None else states
 
-        cmp_means = self.gmm_mean_net(x)
-        cmp_chols = self.gmm_cov_net(x)
+        pre_means = self.gmm_mean_net(x)
+        pre_chols = self.gmm_cov_net(x)
+        cmp_means, cmp_chols = self.gmm_head(pre_means, pre_chols)
 
         if self.gating_network is None:
             gating_probs = einops.repeat(self._prior, 'c -> b c t', b=states.shape[0], t=cmp_means.shape[-2])
@@ -127,3 +127,11 @@ class GaussianMoE(nn.Module):
         action_means = cmp_means[indexs, :]
 
         return action_means
+
+    def get_parameter(self, target: str) -> "Parameter":
+        if target == "gating":
+            return self.gating_network.parameters()
+        elif target == "cmps":
+            return list(self.gmm_mean_net.parameters()) + list(self.gmm_cov_net.parameters()) + list(self.gmm_head.parameters())
+        else:
+            raise ValueError(f"Unknown target {target}")

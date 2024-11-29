@@ -1,6 +1,11 @@
-import torch
-import numpy as np
+from typing import Iterable, Union
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.optim.optimizer import Optimizer
+
+import numpy as np
 
 def str2torchdtype(str_dtype: str = 'float32'):
     if str_dtype == 'float32':
@@ -150,3 +155,51 @@ def diag_bijector(f: callable, x):
         transformed matrix x
     """
     return x.tril(-1) + f(x.diagonal(dim1=-2, dim2=-1)).diag_embed() + x.triu(1)
+
+def get_optimizer(optimizer_type: str, model_parameters: Union[Iterable[torch.Tensor], Iterable[dict]],
+                  learning_rate: float, **kwargs):
+    """
+    Get optimizer instance for given model parameters
+    Args:
+        model_parameters:
+        optimizer_type:
+        learning_rate:
+        **kwargs:
+
+    Returns:
+
+    """
+    if optimizer_type.lower() == "sgd":
+        return optim.SGD(model_parameters, learning_rate, **kwargs)
+    elif optimizer_type.lower() == "sgd_momentum":
+        momentum = kwargs.pop("momentum") if kwargs.get("momentum") else 0.9
+        return optim.SGD(model_parameters, learning_rate, momentum=momentum, **kwargs)
+    elif optimizer_type.lower() == "adam":
+        return optim.Adam(model_parameters, learning_rate, **kwargs)
+    elif optimizer_type.lower() == "adamw":
+        return optim.AdamW(model_parameters, learning_rate, betas=(0.95, 0.999), eps=1e-8, **kwargs)
+    elif optimizer_type.lower() == "adagrad":
+        return optim.adagrad.Adagrad(model_parameters, learning_rate, **kwargs)
+    else:
+        ValueError(f"Optimizer {optimizer_type} is not supported.")
+
+
+def get_lr_schedule(schedule_type: str, optimizer: Optimizer, total_iters) -> Union[
+    optim.lr_scheduler._LRScheduler, None]:
+    if not schedule_type or schedule_type.isspace():
+        return None
+
+    elif schedule_type.lower() == "linear":
+        return optim.lr_scheduler.LinearLR(optimizer, start_factor=1., end_factor=0., total_iters=total_iters)
+
+    elif schedule_type.lower() == "papi":
+        # Multiply learning rate with 0.8 every time the backtracking fails
+        return optim.lr_scheduler.MultiplicativeLR(optimizer, lambda n_calls: 0.8)
+
+    elif schedule_type.lower() == "performance":
+        return optim.lr_scheduler.MultiplicativeLR(optimizer, lambda epoch: 0.8), \
+               optim.lr_scheduler.MultiplicativeLR(optimizer, lambda epoch: 1.01)
+
+    else:
+        raise ValueError(
+            f"Learning rate schedule {schedule_type} is not supported. Select one of [None, linear, papi, performance].")

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import einops
 
-from network_utils import inverse_softplus, fill_triangular, diag_bijector
+from vdd.networks.network_utils import inverse_softplus, fill_triangular, diag_bijector
 
 def get_gmm_head(n_dim, n_components, init_std, minimal_std, type='full', device='cuda'):
     if type == 'full':
@@ -22,7 +22,7 @@ class AbstractGaussianHead(nn.Module):
         self.diag_activation = nn.Softplus()
         self.diag_activation_inv = inverse_softplus
         ##TODO: check if this is correct
-        self._pre_activation_shift = inverse_softplus(init_std - minimal_std)
+        self._pre_activation_shift = inverse_softplus(self.init_std - self.minimal_std)
 
     def forward(self, mean, chol, train=True):
         raise NotImplementedError

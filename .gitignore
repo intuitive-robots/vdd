@@ -204,6 +204,7 @@ cython_debug/
 .history
 .ionide
 .idea/
+*/cw2_results/
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,linux,jupyternotebooks,python
 

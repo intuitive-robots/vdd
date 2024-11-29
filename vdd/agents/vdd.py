@@ -12,22 +12,24 @@ from torch.utils.data import DataLoader, Dataset
 
 import einops
 
-from common.utils.network_utils import get_lr_schedule, get_optimizer
+from vdd.networks.network_utils import get_lr_schedule, get_optimizer
 
-from vi.models.joint_gmm_policy import JointGaussianMixtureModel
-from vi.models.inference_net import SoftCrossEntropyLoss
+from vdd.score_functions.score_base import ScoreFunction
 
-# from beso.envs.block_pushing.block_pushing_multimodal import BlockPushMultimodal
+from vdd.networks.moes import GaussianMoE
+
+from vdd.networks.gating import SoftCrossEntropyLoss
 
 
 
 
-class AmortizedVID_jointGMM(abc.ABC):
+
+class VDD(abc.ABC):
     def __init__(self,
-                 agent: JointGaussianMixtureModel,
+                 agent: GaussianMoE,
                  cmps_optimizer: ch.optim.Optimizer,
                  gating_optimizer: ch.optim.Optimizer,
-                 score_function: BesoScoreFunction,
+                 score_function: ScoreFunction,
                  train_dataloader: DataLoader,
                  test_dataloader: DataLoader,
                  train_batch_size: int = 512,
@@ -47,7 +49,7 @@ class AmortizedVID_jointGMM(abc.ABC):
                  **kwargs
                  ):
         self.agent = agent
-        self.is_vision_task = self.agent.is_vision_task
+        self.is_vision_task = False
 
         self.batch_size = train_batch_size
         self.data_shuffle = data_shuffle
@@ -268,7 +270,7 @@ class AmortizedVID_jointGMM(abc.ABC):
         pred_gatings = pred_gatings.detach()
 
         # sampled actions : (v, b, c, t, a)
-        sampled_actions = self.agent.joint_cmps.rsample((pred_means, pred_chols), n=self.vi_batch_size)
+        sampled_actions = self.agent.gmm_head.rsample(mean=pred_means, chol=pred_chols, n=self.vi_batch_size)
 
         # rearrange the sampled actions to (b, c, v, t, a)
         if len(sampled_actions.size()) == 4:
@@ -347,10 +349,10 @@ class AmortizedVID_jointGMM(abc.ABC):
         return logging_dict
 
     @staticmethod
-    def create_vid_agent(policy_params, optimizer_params, training_params, score_function,
+    def create_vdd_agent(policy_params, optimizer_params, training_params, score_function,
                          train_dataset=None, test_dataset=None):
-
-        policy = JointGaussianMixtureModel(**policy_params, device=training_params['device'], dtype=training_params['dtype'])
+        ### TODO: add the backbone here, support mlp and transformer
+        policy = GaussianMoE(**policy_params, device=training_params['device'], dtype=training_params['dtype'])
 
         if policy_params['vision_task']:
             if policy_params['copy_vision_encoder']:
@@ -367,7 +369,7 @@ class AmortizedVID_jointGMM(abc.ABC):
                                                weight_decay=optimizer_params['cmps_weight_decay'])
         else:
             cmps_optimizer = get_optimizer(optimizer_type=optimizer_params['optimizer_type'],
-                                           model_parameters=policy.joint_cmps.parameters(),
+                                           model_parameters=policy.get_parameter('cmps'),
                                            learning_rate=optimizer_params['cmps_lr'],
                                            weight_decay=optimizer_params['cmps_weight_decay'])
 
@@ -377,7 +379,7 @@ class AmortizedVID_jointGMM(abc.ABC):
 
         if policy_params['learn_gating']:
             gating_net_optimizer = get_optimizer(optimizer_type=optimizer_params['optimizer_type'],
-                                                 model_parameters=policy.gating_network.parameters(),
+                                                 model_parameters=policy.get_parameter('gating'),
                                                  learning_rate=optimizer_params['gating_lr'],
                                                  weight_decay=optimizer_params['gating_weight_decay'])
             gating_lr_scheduler = get_lr_schedule(optimizer_params['gating_lr_schedule'],
@@ -387,15 +389,15 @@ class AmortizedVID_jointGMM(abc.ABC):
             gating_net_optimizer = None
             gating_lr_scheduler = None
 
-        vid_agent = AmortizedVID_jointGMM(agent=policy, cmps_optimizer=cmps_optimizer, gating_optimizer=gating_net_optimizer,
-                                          cmps_lr_scheduler=cmps_lr_scheduler,
-                                          gating_lr_scheduler=gating_lr_scheduler,
-                                          score_function=score_function,
-                                          train_dataloader=train_dataset,
-                                          test_dataloader=test_dataset,
-                                          learn_gating=policy_params['learn_gating'],
-                                          detach_chol=policy_params['detach_chol'],
-                                          **training_params)
+        vid_agent = VDD(agent=policy, cmps_optimizer=cmps_optimizer, gating_optimizer=gating_net_optimizer,
+                        cmps_lr_scheduler=cmps_lr_scheduler,
+                        gating_lr_scheduler=gating_lr_scheduler,
+                        score_function=score_function,
+                        train_dataloader=train_dataset,
+                        test_dataloader=test_dataset,
+                        learn_gating=policy_params['learn_gating'],
+                        detach_chol=policy_params['detach_chol'],
+                        **training_params)
         return vid_agent
 
     def save_best_model(self, path):
