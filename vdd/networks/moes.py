@@ -77,9 +77,11 @@ class GaussianMoE(nn.Module):
         pre_means = self.gmm_mean_net(x)
         pre_chols = self.gmm_cov_net(x)
         cmp_means, cmp_chols = self.gmm_head(pre_means, pre_chols)
+        cmp_means = einops.rearrange(cmp_means, 'b t c d -> b c t d')
+        cmp_chols = einops.rearrange(cmp_chols, 'b t c d1 d2 -> b c t d1 d2')
 
         if self.gating_network is None:
-            gating_probs = einops.repeat(self._prior, 'c -> b c t', b=states.shape[0], t=cmp_means.shape[-2])
+            gating_probs = einops.repeat(self._prior, 'c -> b c t', b=states.shape[0], t=states.shape[1])
         else:
             x = self.joint_cmps._gpt(states, goals).detach()
             gating_probs = self.gating_network(x).exp() + 1e-8

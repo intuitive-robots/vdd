@@ -307,13 +307,13 @@ class VDD(abc.ABC):
         score_w_act = torch.einsum('...va,...va->...v', scores, sampled_actions)
 
         # log responsibilities : (b, c, v)
-        responsibilities = self.agent.log_responsibilities(pred_means.clone().detach(),
-                                                           pred_chols.clone().detach(),
-                                                           pred_gatings,
-                                                           sampled_actions)
+        responsibilities = self.agent.gmm_head.log_responsibilities(pred_means.clone().detach(),
+                                                                    pred_chols.clone().detach(),
+                                                                    pred_gatings,
+                                                                    sampled_actions)
 
         # entropies : (b, c)
-        entropies = self.agent.joint_cmps.entropy((pred_means, pred_chols))
+        entropies = self.agent.gmm_head.entropy(mean=pred_means, chol=pred_chols)
 
         # expectation for r_sample_terms: (b, c)
         r_sample_term = (score_w_act + responsibilities).mean(dim=-1)

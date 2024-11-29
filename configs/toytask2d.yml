@@ -16,7 +16,7 @@ sbatch_args:
 repetitions: 1
 reps_per_job: 1
 reps_in_parallel: 1
-iterations: &iterations 400
+iterations: &iterations 2000
 num_checkpoints: 2
 
 # Global config
@@ -55,7 +55,7 @@ params:
     use_film: false
     share_layers: false
     fix_mean_bias: false
-    bias_init_bound: 3.0
+    bias_init_bound: 1.0
     cmp_activation: "mish"
     cmp_init: 'orthogonal'
     kmeans_init: false
