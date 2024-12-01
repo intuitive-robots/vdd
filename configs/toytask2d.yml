@@ -60,8 +60,6 @@ params:
       cmp_init: 'orthogonal'
       cmp_init_std: 1.0
       cmp_minimal_std: 0.0001
-      cmp_contextual_std: true
-      detach_chol: false
       prior_type: "uniform"
       learn_gating: false
       gating_hidden_layers: 1
@@ -69,7 +67,7 @@ params:
       greedy_predict: false
     #### Transformer
     backbone_params:
-      use_transformer: true
+      use_transformer: false
       n_layers: 1
       window_size: &window_size 1
       goal_seq_len: &goal_seq_len 0
