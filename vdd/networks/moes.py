@@ -33,13 +33,13 @@ class GaussianMoE(nn.Module):
 
         self.backbone = backbone
         self.gmm_head = get_gmm_head(act_dim, num_components, cmp_init_std, cmp_minimal_std, cmp_cov_type, device=device)
-        self.gmm_mean_net = ResidualMLPNetwork(input_dim=backbone_out_dim,
+        self.gmm_mean_net = ResidualMLPNetwork(input_dim=cmp_mean_hidden_dims,
                                                output_dim=self.gmm_head.flat_mean_dim,
                                                hidden_dim=cmp_mean_hidden_dims,
                                                num_hidden_layers=cmp_mean_hidden_layers,
                                                activation=cmp_activation,
                                                device=device)
-        self.gmm_cov_net = ResidualMLPNetwork(input_dim=backbone_out_dim,
+        self.gmm_cov_net = ResidualMLPNetwork(input_dim=cmp_mean_hidden_dims,
                                               output_dim=self.gmm_head.flat_chol_dim,
                                               hidden_dim=cmp_cov_hidden_dims,
                                               num_hidden_layers=cmp_cov_hidden_layers,
@@ -70,7 +70,7 @@ class GaussianMoE(nn.Module):
         self.train(train)
 
         if self.backbone is not None:
-            x = self.backbone(states, goals, train=train)
+            x = self.backbone(states=states, goals=goals)
         else:
             x = torch.cat([states, goals], dim=-1) if goals is not None else states
 

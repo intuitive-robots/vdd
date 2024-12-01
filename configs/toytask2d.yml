@@ -44,43 +44,43 @@ wandb:
 params:
   gpu_id: 0
   policy_params:
-    obs_dim: 2
-    act_dim: 2
-    num_components: 8
-    cmp_cov_type: "full"
-    cmp_hidden_dims: 64
-    cmp_hidden_layers: 2
-    cmp_cov_hidden_dims: 64
-    cmp_cov_hidden_layers: 2
-    use_film: false
-    share_layers: false
-    fix_mean_bias: false
-    bias_init_bound: 1.0
-    cmp_activation: "mish"
-    cmp_init: 'orthogonal'
-    kmeans_init: false
-    cmp_init_std: 1.0
-    cmp_minimal_std: 0.0001
-    cmp_contextual_std: true
-    detach_chol: false
+    moe_params:
+      obs_dim: &obs_dim 2
+      act_dim: 2
+      goal_dim: &goal_dim 0
+      goal_conditional: &goal_conditional false
+      num_components: 8
+      cmp_cov_type: "full"
+      cmp_hidden_dims: 64
+      cmp_hidden_layers: 2
+      cmp_cov_hidden_dims: 64
+      cmp_cov_hidden_layers: 2
+      bias_init_bound: 1.0
+      cmp_activation: "mish"
+      cmp_init: 'orthogonal'
+      cmp_init_std: 1.0
+      cmp_minimal_std: 0.0001
+      cmp_contextual_std: true
+      detach_chol: false
+      prior_type: "uniform"
+      learn_gating: false
+      gating_hidden_layers: 1
+      gating_hidden_dims: 32
+      greedy_predict: false
     #### Transformer
-    gpt_n_layers: 1
-    window_size: &window_size 1
-    goal_conditional: false
-    goal_seq_len: &goal_seq_len 0
-    n_heads: 2
-    embed_dim: 16
-    embed_pdrop: 0.0
-    attn_pdrop: 0.0
-    resid_pdrop: 0.0
-    encode_action: false
-    ####
+    backbone_params:
+      use_transformer: true
+      n_layers: 1
+      window_size: &window_size 1
+      goal_seq_len: &goal_seq_len 0
+      n_heads: 2
+      embed_dim: 16
+      embed_pdrop: 0.0
+      atten_pdrop: 0.0
+      resid_pdrop: 0.0
+    #### vision encoder params
     vision_task: false
-    prior_type: "uniform"
-    learn_gating: false
-    gating_hidden_layers: 1
-    gating_hidden_dims: 32
-    greedy_predict: false
+
 
   optimizer_params:
     optimizer_type: "adam"

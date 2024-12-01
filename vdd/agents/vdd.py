@@ -17,6 +17,7 @@ from vdd.networks.network_utils import get_lr_schedule, get_optimizer
 from vdd.score_functions.score_base import ScoreFunction
 
 from vdd.networks.moes import GaussianMoE
+from vdd.networks.gpt import GPTNetwork
 
 from vdd.networks.gating import SoftCrossEntropyLoss
 
@@ -352,7 +353,15 @@ class VDD(abc.ABC):
     def create_vdd_agent(policy_params, optimizer_params, training_params, score_function,
                          train_dataset=None, test_dataset=None):
         ### TODO: add the backbone here, support mlp and transformer
-        policy = GaussianMoE(**policy_params, device=training_params['device'], dtype=training_params['dtype'])
+        backbone_params = policy_params['backbone_params']
+
+        backbone = GPTNetwork(obs_dim=policy_params['moe_params']['obs_dim'],
+                              goal_dim=policy_params['moe_params']['goal_dim'],
+                              output_dim=policy_params['moe_params']['cmp_hidden_dims'],
+                              goal_conditional=policy_params['moe_params']['goal_conditional'],
+                              **backbone_params).to(training_params['device']) if backbone_params.pop('use_transformer') else None
+
+        policy = GaussianMoE(**policy_params['moe_params'], backbone=backbone, device=training_params['device'], dtype=training_params['dtype'])
 
         if policy_params['vision_task']:
             if policy_params['copy_vision_encoder']:
@@ -377,7 +386,7 @@ class VDD(abc.ABC):
                                            cmps_optimizer, training_params['max_train_iters']) \
             if optimizer_params['cmps_lr_schedule'] is not None else None
 
-        if policy_params['learn_gating']:
+        if policy_params['moe_params']['learn_gating']:
             gating_net_optimizer = get_optimizer(optimizer_type=optimizer_params['optimizer_type'],
                                                  model_parameters=policy.get_parameter('gating'),
                                                  learning_rate=optimizer_params['gating_lr'],
@@ -389,16 +398,15 @@ class VDD(abc.ABC):
             gating_net_optimizer = None
             gating_lr_scheduler = None
 
-        vid_agent = VDD(agent=policy, cmps_optimizer=cmps_optimizer, gating_optimizer=gating_net_optimizer,
+        vdd_agent = VDD(agent=policy, cmps_optimizer=cmps_optimizer, gating_optimizer=gating_net_optimizer,
                         cmps_lr_scheduler=cmps_lr_scheduler,
                         gating_lr_scheduler=gating_lr_scheduler,
                         score_function=score_function,
                         train_dataloader=train_dataset,
                         test_dataloader=test_dataset,
-                        learn_gating=policy_params['learn_gating'],
-                        detach_chol=policy_params['detach_chol'],
+                        learn_gating=policy_params['moe_params']['learn_gating'],
                         **training_params)
-        return vid_agent
+        return vdd_agent
 
     def save_best_model(self, path):
         """
