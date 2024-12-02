@@ -21,7 +21,7 @@ num_checkpoints: 2
 
 # Global config
 exp_path: &exp_path "./cw2_results/clean_vdd/kitchen"
-exp_name: &exp_name "clean_vdd_kitchen_1cmps_backbone_rollout2000"
+exp_name: &exp_name "clean_vdd_kitchen_4cmps_backbone_rollout2000"
 
 
 # cw2 config
@@ -49,7 +49,7 @@ params:
       act_dim: 9
       goal_dim: &goal_dim 30
       goal_conditional: &goal_conditional true
-      num_components: 1
+      num_components: 4
       cmp_cov_type: "full"
       cmp_mean_hidden_dims: 512
       cmp_mean_hidden_layers: 2
@@ -61,7 +61,7 @@ params:
       cmp_init_std: 1.0
       cmp_minimal_std: 0.0001
       prior_type: "uniform"
-      learn_gating: false
+      learn_gating: true
       gating_hidden_layers: 2
       gating_hidden_dims: 64
       greedy_predict: false

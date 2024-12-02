@@ -16,7 +16,7 @@ sbatch_args:
 repetitions: 1
 reps_per_job: 1
 reps_in_parallel: 1
-iterations: &iterations 2000
+iterations: &iterations 600
 num_checkpoints: 2
 
 # Global config
@@ -61,7 +61,7 @@ params:
       cmp_init_std: 1.0
       cmp_minimal_std: 0.0001
       prior_type: "uniform"
-      learn_gating: true
+      learn_gating: false
       gating_hidden_layers: 2
       gating_hidden_dims: 64
       greedy_predict: false

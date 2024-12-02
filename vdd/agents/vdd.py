@@ -24,7 +24,6 @@ from vdd.networks.gating import SoftCrossEntropyLoss
 
 
 
-
 class VDD(abc.ABC):
     def __init__(self,
                  agent: GaussianMoE,
@@ -410,3 +409,4 @@ class VDD(abc.ABC):
         :return:
         """
         ch.save(self.agent, os.path.join(path, f"debug_model.pt"))
+
