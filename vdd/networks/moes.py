@@ -56,7 +56,9 @@ class GaussianMoE(nn.Module):
 
         self.learn_gating = learn_gating
 
-        self.gating_network = GatingNet(self.joint_cmps._gpt.out_dim, num_components, gating_hidden_layers,
+        self.greedy_predict = kwargs.get("greedy_predict", False)
+
+        self.gating_network = GatingNet(input_dim[0], num_components, gating_hidden_layers,
                                         gating_hidden_dims, device=device) if learn_gating else None
 
         if prior_type == 'uniform':
@@ -84,7 +86,7 @@ class GaussianMoE(nn.Module):
         if self.gating_network is None:
             gating_probs = einops.repeat(self._prior, 'c -> b c t', b=states.shape[0], t=states.shape[1])
         else:
-            x = self.joint_cmps._gpt(states, goals).detach()
+            x = x.clone().detach()
             gating_probs = self.gating_network(x).exp() + 1e-8
             gating_probs = einops.repeat(gating_probs, 'b t c -> b c t')
 
@@ -135,6 +137,8 @@ class GaussianMoE(nn.Module):
         if target == "gating":
             return self.gating_network.parameters()
         elif target == "cmps":
-            return list(self.gmm_mean_net.parameters()) + list(self.gmm_cov_net.parameters()) + list(self.gmm_head.parameters())
+            if self.backbone is None:
+                return list(self.gmm_mean_net.parameters()) + list(self.gmm_cov_net.parameters()) + list(self.gmm_head.parameters())
+            return list(self.gmm_mean_net.parameters()) + list(self.gmm_cov_net.parameters()) + list(self.gmm_head.parameters()) + list(self.backbone.parameters())
         else:
             raise ValueError(f"Unknown target {target}")

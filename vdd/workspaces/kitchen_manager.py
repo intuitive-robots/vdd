@@ -3,10 +3,8 @@ import torch as ch
 import torch.utils.data as Data
 import numpy as np
 
-from collections import deque
-
-from vi.experiment_managers.base_manager import BaseManager
-from vi.score_functions.beso_score import BesoScoreFunction
+from vdd.workspaces.base_manager import BaseManager
+from vdd.score_functions.beso_score import BesoScoreFunction
 
 import hydra
 from omegaconf import OmegaConf
@@ -46,40 +44,8 @@ class KitchenManager(BaseManager):
         self.goal_idx_offset = 0
 
     def env_rollout(self, agent, n_episodes: int, **kwargs):
-        # agent.eval()
-        #
-        # env = gym.make(self.workspace_manager.env_name)
-        # env.seed(self.seed)
-        # rewards = []
-        # if self.goal_idx_offset > 535:
-        #     self.goal_idx_offset = 0
-        # for goal_idx in range(n_episodes):
-        #     goal_idx = goal_idx + self.goal_idx_offset
-        #     total_reward = 0
-        #     done = False
-        #     obs = env.reset()
-        #     goal = self.workspace_manager.multi_goals_fn(obs, goal_idx, 0)
-        #     for n in range(280):
-        #         if done or n == 279:
-        #             rewards.append(total_reward)
-        #             print(f" Goal index {goal_idx}, Total reward: {total_reward}")
-        #             break
-        #         obs = ch.from_numpy(obs).to(self.device).to(ch.float32)[..., :30]
-        #         obs = obs.unsqueeze(0)
-        #         # input = ch.cat([obs, goal], dim=-1).to(self.device).to(ch.float32)
-        #         action = agent.act(obs, goal)
-        #
-        #         try:
-        #             obs, reward, done, info = env.step(action.squeeze().cpu().numpy())
-        #         except:
-        #             print("unstable simulation")
-        #             reward = 0
-        #         total_reward += reward
-        # self.goal_idx_offset += n_episodes
-        # agent.train()
-        # return {"mean_rewards": sum(rewards)/len(rewards)}
         if self.cpu_cores is not None:
-            os.sched_setaffinity(os.getpid(), set([list(self.cpu_cores)[0]]))
+            os.sched_setaffinity(os.getpid(), set([int(list(self.cpu_cores)[0])]))
         ch.cuda.empty_cache()
         agent.eval()
         wrapped_agent = KitchenAgentWrapper(agent, self.scaler)
@@ -138,15 +104,3 @@ class KitchenManager(BaseManager):
         workspace_manager = hydra.utils.instantiate(config.workspaces)
 
         return agent, workspace_manager
-
-if __name__=="__main__":
-    config_dir = "/home/hongyi/Codes/score_rl/beso/configs"
-    config_name = "evaluate_kitchen.yaml"
-    score_fn_params = {"noise_level_type": "uniform", "weights_type": "stable"}
-    seed = 0
-    device = "cuda"
-
-    kitchen_manager = KitchenManager(config_dir, config_name, score_fn_params, seed, device)
-    print(kitchen_manager.get_train_and_test_datasets())
-    print(kitchen_manager.get_scaler())
-    print(kitchen_manager.get_score_function())

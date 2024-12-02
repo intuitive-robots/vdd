@@ -29,7 +29,6 @@ class ToyTask2DManager(BaseManager):
         self.states = ch.ones_like(self.actions[:, 0]).unsqueeze(1).to(device)
         self.dataset = Data.TensorDataset(self.states, self.actions)
         self.test_dataset = Data.TensorDataset(self.states, self.test_actions)
-
         self.train_loader = Data.DataLoader(self.dataset, batch_size=datasets_config['batch_size'], shuffle=True)
         self.test_loader = Data.DataLoader(self.test_dataset, batch_size=datasets_config['batch_size'], shuffle=True)
 
@@ -60,9 +59,3 @@ class ToyTask2DManager(BaseManager):
 
     def get_train_and_test_datasets(self, **kwargs):
         return self.train_loader, self.test_loader
-
-if __name__ == '__main__':
-    device = 'cuda'
-    manager = ToyTask2DManager(r=1, n_component=1, std=0.4, device=device, datasets_config={'batch_size': 64})
-    manager.score_function.visualize_grad_and_cmps(x_range=[-2, 2], y_range=[-2, 2], n=15)
-    plt.show()

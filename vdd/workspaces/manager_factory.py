@@ -1,6 +1,6 @@
 # from vdd.workspaces.base_manager import BaseManager
 # from vi.experiment_managers.block_push_manager import BlockPushManager
-# from vi.experiment_managers.kitchen_manager import KitchenManager
+from vdd.workspaces.kitchen_manager import KitchenManager
 # from vi.experiment_managers.d3il_manager import D3ILManager, D3ILAlignManager, D3ILAvoidingManager, D3ILStackingManager, \
 #     D3ILSortingVisionManager, D3ILPushingManager, D3ILStackingVisionManager
 from vdd.workspaces.toytask2d_manager import ToyTask2DManager
@@ -10,8 +10,8 @@ def create_experiment_manager(config):
         return ToyTask2DManager(**config)
     # elif config['experiment_name'] == 'block_push':
     #     return BlockPushManager(**config)
-    # elif config['experiment_name'] == 'kitchen':
-    #     return KitchenManager(**config)
+    elif config['experiment_name'] == 'kitchen':
+        return KitchenManager(**config)
     # elif config['experiment_name'] == 'd3il':
     #     return D3ILManager(**config)
     # elif config['experiment_name'] == 'd3il_avoiding':

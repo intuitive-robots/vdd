@@ -63,17 +63,12 @@ class GMMScoreFunction(ScoreFunction):
         scores = scores.view(n, n, 2).cpu()
         u = scores[..., 0]
         v = scores[..., 1]
-
-        # fig, ax = plt.subplots(1, 1)
         ax.quiver(raw_x.cpu(), raw_y.cpu(), u, v, color="white"
                                                         "")
-        # self.visualize_cmps(ax=ax)
-        # plt.show()
 
     def visualize_grad_and_cmps(self, x_range=[-1, 1], y_range=[-1, 1], n=20):
         fig, ax = plt.subplots(1, 1, figsize=(6, 6), dpi=150)
 
-        # self.visualize_cmps(ax=ax)
         plot_2d_gaussians_color_map(self.means.cpu(), self.chols.cpu(), ax,
                                     x_range=x_range, y_range=y_range,
                                     title="GT GMM")
@@ -91,20 +86,3 @@ class GMMScoreFunction(ScoreFunction):
         chols = chols + ch.diag_embed(diag)
         chols = 0.15 * chols
         return means, chols
-
-
-if __name__ == "__main__":
-    device = 'cuda'
-    means, chols = GMMScoreFunction.generate_random_params(5, 2)
-    print(chols.shape)
-
-    score_function = GMMScoreFunction(means=means, chols=chols, device=device)
-    samples = ch.rand(100, 2).to(device)
-    # score_function.visualize_cmps()
-    with ch.no_grad():
-        scores = score_function(samples, None)
-
-    fig, ax = plt.subplots(1, 1)
-    score_function.visualize_cmps(ax=ax)
-    score_function.visualize_gradient_field(ax=ax)
-    plt.show()

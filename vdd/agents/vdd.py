@@ -43,7 +43,6 @@ class VDD(abc.ABC):
                  learn_gating: bool = True,
                  fix_gating_after_iters: int = 0,
                  max_train_iters: int = 10000,
-                 detach_chol: bool = False,
                  seed: int = 0,
                  device: str = 'cuda',
                  dtype: str = 'float32',
@@ -73,8 +72,6 @@ class VDD(abc.ABC):
         self.vi_batch_size = vi_batch_size
         self.scaler = None
         self.exp_manager = None
-
-        self.detach_chol = detach_chol
 
         self.cmp_steps = cmp_steps
         self.gating_steps = gating_steps
@@ -123,7 +120,7 @@ class VDD(abc.ABC):
                     self.iter_train_dataloader = iter(self.train_dataloader)
                     batch = next(self.iter_train_dataloader)
                 batch = self.exp_manager.preprocess_data(batch)
-                train_metric_dict.update(self.armotized_vi_update(batch[0], batch[1], batch[2]))
+                train_metric_dict.update(self.iterative_train_gating(batch[0], batch[1], batch[2]))
 
         if self.learn_gating and n == self.fix_gating_after_iters:
             self.agent.gating_network.train(mode=False)
@@ -152,10 +149,6 @@ class VDD(abc.ABC):
             else:
                 goals = None
 
-            # inputs = self.scaler.scale_input(inputs)
-            # outputs = self.scaler.scale_output(outputs)
-
-            # equivalent to self.agent.act(inputs), here unfold to record the gating
             cmp_means, _, gating = self.agent(inputs, goals, train=False)
 
             cmp_means = einops.rearrange(cmp_means, 'b c t a -> (b t) c a')
@@ -184,14 +177,11 @@ class VDD(abc.ABC):
         gatings = ch.cat(gatings, dim=0)
         avrg_entropy = ch.distributions.Categorical(probs=gatings).entropy().mean().item()
         logging_dict['test_mean_gating_entropy'] = avrg_entropy
-        # for i in range(self.agent.n_components):
-        #     average_gating_prob = gatings[:, i].mean().item()
-        #     logging_dict[f'cmp_{i}_aver_gating_prob'] = average_gating_prob
 
         return logging_dict
 
 
-    def armotized_vi_update(self, inputs, actions, goals=None):
+    def iterative_train_gating(self, inputs, actions, goals=None):
 
         pred_means, pred_chols, pred_gatings = self.agent.forward(inputs, goals)
         pred_log_gatings = pred_gatings.log()
@@ -203,7 +193,7 @@ class VDD(abc.ABC):
 
         with ch.no_grad():
             actions = actions[:, None, :].repeat(1, self.agent.n_components, 1)
-            log_probs = self.agent.joint_cmps.log_probability((pred_means, pred_chols), actions)
+            log_probs = self.agent.gmm_head.log_prob(x=actions, mean=pred_means, chol=pred_chols)
             ### log the log_probs per component
             log_resps = log_probs + pred_log_gatings
             log_resps = log_resps - ch.logsumexp(log_resps, dim=1, keepdim=True)
@@ -264,10 +254,6 @@ class VDD(abc.ABC):
         # pred_means, pred_chols : (b, c, t, a), (b, c, t, a, a)
         pred_means, pred_chols, pred_gatings = self.agent(states, goals)
 
-        ###FIXME: hack for not training chols
-        if self.detach_chol:
-            pred_chols = pred_chols.detach()
-
         pred_gatings = pred_gatings.detach()
 
         # sampled actions : (v, b, c, t, a)
@@ -304,7 +290,6 @@ class VDD(abc.ABC):
 
         ### TODO: check if the multiplication is correct( should that be element-wise multiplication?)
         # score dot action : (b, c, v)
-        # score_w_act = torch.einsum('bcva,bcva->bcv', scores, sampled_actions)
         score_w_act = torch.einsum('...va,...va->...v', scores, sampled_actions)
 
         # log responsibilities : (b, c, v)
@@ -357,7 +342,7 @@ class VDD(abc.ABC):
 
         backbone = GPTNetwork(obs_dim=policy_params['moe_params']['obs_dim'],
                               goal_dim=policy_params['moe_params']['goal_dim'],
-                              output_dim=policy_params['moe_params']['cmp_hidden_dims'],
+                              output_dim=policy_params['moe_params']['cmp_mean_hidden_dims'],
                               goal_conditional=policy_params['moe_params']['goal_conditional'],
                               **backbone_params).to(training_params['device']) if backbone_params.pop('use_transformer') else None
 
