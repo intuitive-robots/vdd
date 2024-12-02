@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='new_project',
+    name='vdd',
     version='1.0.0',
-    author='Maximilian Xiling Li',
-    author_email='maximilian.xiling.li@gmail.com',
-    description='New Python Project',
+    author='Hongyi Zhou',
+    author_email='hongyi.zhou@kit.edu',
+    description='Variational Diffusion Distillation',
     packages=find_packages(),    
 )
