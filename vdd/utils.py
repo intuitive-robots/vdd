@@ -1,5 +1,5 @@
 from typing import Dict
-from GPUtil import GPUtil
+# from GPUtil import GPUtil
 import os
 import copy
 import shutil
@@ -31,9 +31,9 @@ def global_seeding(seed: int):
     print(f"Setting global seed: {seed}")
 
 
-def get_free_gpus():
-    return GPUtil.getAvailable(order='memory', limit=1, maxLoad=0.8, maxMemory=0.8, includeNan=False,
-                                    excludeID=[], excludeUUID=[])
+# def get_free_gpus():
+#     return GPUtil.getAvailable(order='memory', limit=1, maxLoad=0.8, maxMemory=0.8, includeNan=False,
+#                                     excludeID=[], excludeUUID=[])
 
 def assign_process_to_cpu(pid, cpus):
     os.sched_setaffinity(pid, cpus)

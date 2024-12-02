@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 import matplotlib.pyplot as plt
 
-from vdd.score_functions.score_utils import plot_2d_gaussians
+from vdd.score_functions.score_utils import plot_2d_gaussians, plot_2d_gaussians_color_map
 
 class GMMScoreFunction(ScoreFunction):
     def __init__(self, model=None, means=ch.Tensor, chols=ch.Tensor, prior=None, device='cuda'):
@@ -65,14 +65,20 @@ class GMMScoreFunction(ScoreFunction):
         v = scores[..., 1]
 
         # fig, ax = plt.subplots(1, 1)
-        ax.quiver(raw_x.cpu(), raw_y.cpu(), u, v)
+        ax.quiver(raw_x.cpu(), raw_y.cpu(), u, v, color="white"
+                                                        "")
         # self.visualize_cmps(ax=ax)
         # plt.show()
 
     def visualize_grad_and_cmps(self, x_range=[-1, 1], y_range=[-1, 1], n=20):
-        fig, ax = plt.subplots(1, 1)
-        self.visualize_gradient_field(n=n, x_range=x_range, y_range=y_range, ax=ax)
-        self.visualize_cmps(ax=ax)
+        fig, ax = plt.subplots(1, 1, figsize=(6, 6), dpi=150)
+
+        # self.visualize_cmps(ax=ax)
+        plot_2d_gaussians_color_map(self.means.cpu(), self.chols.cpu(), ax,
+                                    x_range=x_range, y_range=y_range,
+                                    title="GT GMM")
+        self.visualize_gradient_field(n=n, x_range=x_range, y_range=y_range,
+                                      ax=ax)
         return fig, ax
 
     @staticmethod

@@ -24,8 +24,6 @@ class ToyTask2DManager(BaseManager):
         self.score_function = GMMScoreFunction(means=means, chols=chols, device=device)
         self.scaler = None
         self.r = r
-        # self.std = std
-        # self.num_datapoints = num_datapoints
         self.actions = self.score_function.sample(num_datapoints).unsqueeze(1).to(device)
         self.test_actions = self.score_function.sample(num_datapoints).unsqueeze(1).to(device)
         self.states = ch.ones_like(self.actions[:, 0]).unsqueeze(1).to(device)
@@ -44,7 +42,7 @@ class ToyTask2DManager(BaseManager):
 
         means = einops.rearrange(means, '1 n 1 d -> n d').cpu().detach().numpy()
         chols = einops.rearrange(chols, '1 n 1 d1 d2 -> n d1 d2').cpu().detach().numpy()
-        plot_2d_gaussians(means, chols, ax, color='r')
+        plot_2d_gaussians(means, chols, ax, color='orange')
         ax.set_aspect('equal')
         plt.show()
         agent.train()

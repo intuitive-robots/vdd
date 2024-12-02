@@ -74,13 +74,6 @@ class VDDtrain(experiment.AbstractIterativeExperiment):
         self.vid_agent.get_exp_manager(self.experiment_manager)
         print(f'Number of parameters: {count_parameters(self.vid_agent.agent)}')
 
-        # ###FIXME:hackey k-mean initialization
-        # kmeans_init = algo_config['policy_params'].get('kmeans_init', False)
-        # if kmeans_init:
-        #     actions = self.experiment_manager.agent.trainset.get_all_actions()
-        #     actions = self.experiment_manager.scaler.scale_output(actions)
-        #     self.vid_agent.agent.joint_cmps.kmean_init(actions)
-
         self.test_interval = algo_config['train_params']['test_interval']
         self.env_rollout_interval = algo_config['train_params']['env_rollout_interval']
         self.num_env_rollouts = algo_config['train_params']['num_rollouts']
