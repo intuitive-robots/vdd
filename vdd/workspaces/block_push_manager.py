@@ -1,13 +1,10 @@
 import os
 import torch
 import torch as ch
-import torch.utils.data as Data
 import numpy as np
 
-from vi.experiment_managers.base_manager import BaseManager
-from vi.score_functions.beso_score import BesoScoreFunction
-
-from beso.envs.block_pushing.block_pushing_multimodal import BlockPushMultimodal
+from vdd.workspaces.base_manager import BaseManager
+from vdd.score_functions.beso_score import BesoScoreFunction
 
 import hydra
 from omegaconf import OmegaConf
@@ -57,7 +54,7 @@ class BlockPushManager(BaseManager):
             :return:
             """
             if self.cpu_cores is not None:
-                assign_process_to_cpu(os.getpid(), set([list(self.cpu_cores)[0]]))
+                assign_process_to_cpu(os.getpid(), set([int(list(self.cpu_cores)[0])]))
             ch.cuda.empty_cache()
             agent.eval()
             wrapped_agent = AgentWrapper(agent, self.scaler)
@@ -107,16 +104,3 @@ class BlockPushManager(BaseManager):
             workspace_manager = hydra.utils.instantiate(config.workspaces)
 
             return agent, workspace_manager
-
-
-if __name__ == "__main__":
-    model_path = "/home/hongyi/Codes/demo_acc_rl/beso/trained_models/block_push/c_beso_1"
-    sv_name = "model_state_dict.pth"
-    manager = BlockPushManager(model_path=model_path, sv_name=sv_name, seed=0, device="cuda:0")
-    manager.beso_agent.get_scaler(manager.workspace_manager.scaler)
-    ### load pretrained GMM
-    gmm_agent = torch.load("/home/hongyi/Codes/demo_acc_rl/DemoGuidedRL/cw2_results/trained_models/bp_avid_gpt_trained/rep_02/model/best_model.pt")
-    gmm_agent.greedy_predict = True
-    manager.workspace_manager.render = False
-    results = manager.env_rollout(gmm_agent, n_episodes=10)
-    # results = manager.env_rollout(manager.beso_agent, n_episodes=100)
