@@ -21,7 +21,7 @@ num_checkpoints: 2
 
 # Global config
 exp_path: &exp_path "./cw2_results/clean_vdd/avoiding"
-exp_name: &exp_name "clean_vdd_avoiding_8cmp_t1-4_mlp1layer_NEW"
+exp_name: &exp_name "clean_vdd_avoiding_8cmp_t1-4_mlp1layer_NoGating"
 
 
 # cw2 config
@@ -64,7 +64,7 @@ params:
       cmp_init_std: 1.0
       cmp_minimal_std: 0.0001
       prior_type: "uniform"
-      learn_gating: true
+      learn_gating: false
       gating_hidden_layers: 2
       gating_hidden_dims: 64
       greedy_predict: false
@@ -102,7 +102,7 @@ params:
     test_batch_size: &test_batch_size 1024
 #    num_workers: &num_workers 4
     test_interval: 10
-    env_rollout_interval: 2000
+    env_rollout_interval: 1000
     num_rollouts: 40
     num_contexts: 1
     final_num_contexts: 1

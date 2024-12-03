@@ -21,7 +21,7 @@ num_checkpoints: 2
 
 # Global config
 exp_path: &exp_path "./cw2_results/clean_vdd/avoiding"
-exp_name: &exp_name "clean_vdd_avoiding_8cmp_t1-4_mlp1layer_learnGating"
+exp_name: &exp_name "clean_vdd_beso_avoiding_8cmp_learnGating"
 
 
 # cw2 config
@@ -110,27 +110,25 @@ params:
     device: *device
     dtype: *dtype
 
-
   experiment_params:
     experiment_name: "d3il_avoiding"
     vision_task: false
     goal_conditioned: false
-    model_path: "/home/hongyi/Codes/demo_acc_rl/d3il/logs/models/avoiding/ddpm_gpt/agent_name=ddpm_transformer,agents.model.n_timesteps=8,agents=ddpm_transformer_agent,group=obstacle_avoidance_ddpm_transformer_seeds,seed=0,simulation.n_cores=40,simulation.n_trajectories=480,window_size=5"
-    sv_name: "eval_best_ddpm.pth"
-    model_select_metric: "success_rate"
+    model_path: "/home/hongyi/Codes/demo_acc_rl/d3il/logs/models/avoiding/beso/agent_name=beso,agents.num_sampling_steps=8,agents.sigma_max=1,agents.sigma_min=0.1,agents=beso_agent,group=beso_train_loss,seed=0,simulation.n_cores=40,simulation.n_trajectories=480,window_size=5"
+    sv_name: "eval_best_beso.pth"
+    model_select_metric: "entropy"
     datasets_config:
       train_batch_size: *train_batch_size
       test_batch_size: *test_batch_size
       window_size: *window_size
       goal_seq_len: 1
       num_workers: 1
-    score_type: "ddpm"
     score_fn_params:
-      noise_level_type: "discrete" # "uniform" or "discrete"
+      noise_level_type: "uniform"
       weights_type: "stable"
-      t_min: 1
-      t_max: 4
-      t_bound: 8
+      anneal_end_iter: 20000
+      sigma_min: 0.2
+      sigma_max: 0.5
     obs_dim: 4
     goal_dim: 0
     seed: *seed
