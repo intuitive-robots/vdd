@@ -1,8 +1,5 @@
 # [NeurIPS 2024] Official code for "Variational Distillation of Diffusion Policies into Mixture of Experts"
 # (Under construction)
-# TODO: Usage instructions
-# TODO: License
-# TODO: Nice Figures
 
 ## Installation Guide
 
