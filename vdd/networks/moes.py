@@ -7,7 +7,7 @@ import einops
 
 from vdd.networks.gaussian import get_gmm_head
 from vdd.networks.gating import GatingNet
-from vdd.networks.mlp import ResidualMLPNetwork
+from vdd.networks.mlp import ResidualMLPNetwork, MLPNetwork
 from vdd.networks.network_utils import str2torchdtype
 
 
@@ -15,6 +15,7 @@ class GaussianMoE(nn.Module):
     def __init__(self, num_components, obs_dim, act_dim, goal_dim,
                  prior_type, cmp_init, cmp_cov_type='diag',
                  backbone = None,
+                 moe_network_type = 'residual',
                  cmp_mean_hidden_dims = 64,
                  cmp_mean_hidden_layers = 2,
                  cmp_cov_hidden_dims = 64,
@@ -34,18 +35,33 @@ class GaussianMoE(nn.Module):
         self.backbone = backbone
         input_dim = obs_dim + goal_dim if backbone is None else cmp_mean_hidden_dims,
         self.gmm_head = get_gmm_head(act_dim, num_components, cmp_init_std, cmp_minimal_std, cmp_cov_type, device=device)
-        self.gmm_mean_net = ResidualMLPNetwork(input_dim=input_dim[0],
-                                               output_dim=self.gmm_head.flat_mean_dim,
-                                               hidden_dim=cmp_mean_hidden_dims,
-                                               num_hidden_layers=cmp_mean_hidden_layers,
-                                               activation=cmp_activation,
-                                               device=device)
-        self.gmm_cov_net = ResidualMLPNetwork(input_dim=input_dim[0],
-                                              output_dim=self.gmm_head.flat_chol_dim,
-                                              hidden_dim=cmp_cov_hidden_dims,
-                                              num_hidden_layers=cmp_cov_hidden_layers,
-                                              activation=cmp_activation,
-                                              device=device)
+
+        if moe_network_type == 'residual':
+            self.gmm_mean_net = ResidualMLPNetwork(input_dim=input_dim[0],
+                                                   output_dim=self.gmm_head.flat_mean_dim,
+                                                   hidden_dim=cmp_mean_hidden_dims,
+                                                   num_hidden_layers=cmp_mean_hidden_layers,
+                                                   activation=cmp_activation,
+                                                   device=device)
+            self.gmm_cov_net = ResidualMLPNetwork(input_dim=input_dim[0],
+                                                  output_dim=self.gmm_head.flat_chol_dim,
+                                                  hidden_dim=cmp_cov_hidden_dims,
+                                                  num_hidden_layers=cmp_cov_hidden_layers,
+                                                  activation=cmp_activation,
+                                                  device=device)
+        else:
+            self.gmm_mean_net = MLPNetwork(input_dim=input_dim[0],
+                                            output_dim=self.gmm_head.flat_mean_dim,
+                                            hidden_dim=cmp_mean_hidden_dims,
+                                            num_hidden_layers=cmp_mean_hidden_layers,
+                                            activation=cmp_activation,
+                                            device=device)
+            self.gmm_cov_net = MLPNetwork(input_dim=input_dim[0],
+                                          output_dim=self.gmm_head.flat_chol_dim,
+                                          hidden_dim=cmp_cov_hidden_dims,
+                                          num_hidden_layers=cmp_cov_hidden_layers,
+                                          activation=cmp_activation,
+                                          device=device)
 
         if hasattr(self.backbone, 'window_size'):
             self.window_size = self.backbone.window_size

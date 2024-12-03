@@ -2,16 +2,15 @@ import os
 import torch as ch
 import numpy as np
 import einops
-from collections import deque
 
 import hydra
 from omegaconf import OmegaConf
 
 import torch.utils.data as Data
 
-from vi.experiment_managers.base_manager import BaseManager
-from vi.score_functions.beso_score import BesoScoreFunction
-from vi.score_functions.ddpm_score import DDPMScoreFunction
+from vdd.workspaces.base_manager import BaseManager
+from vdd.score_functions.beso_score import BesoScoreFunction
+from vdd.score_functions.ddpm_score import DDPMScoreFunction
 
 from matplotlib import pyplot as plt
 
@@ -313,26 +312,3 @@ class D3ILPushingManager(D3ILManager):
         config['train_data_path'] = 'environments/dataset/data/pushing/train_files.pkl'
         config['eval_data_path'] = 'environments/dataset/data/pushing/eval_files.pkl'
         return config
-
-
-if __name__ == "__main__":
-    # config_dir = "/home/hongyi/Codes/demo_acc_rl/d3il/configs"
-    # config_name = "avoiding_config.yaml"
-    model_path = "/home/hongyi/Codes/demo_acc_rl/d3il/logs/models/stacking/beso/agent_name=beso,agents.num_sampling_steps=16,agents.sigma_max=1,agents.sigma_min=0.01,agents=beso_agent,group=beso_train_loss,seed=0,simulation.n_contexts=60,simulation.n_cores=30,simulation.n_trajectories_per_context=18,window_size=5"
-    sv_name = "eval_best_beso.pth"
-    manager = D3ILManager(model_path, sv_name,
-                          {'noise_level_type': "last_sigma",
-                           'weights_type': "stable"},
-                          obs_dim=4, goal_dim=0,
-                          seed=0, device="cuda")
-    agent, env_sim = manager.agent, manager.env_sim
-    manager.env_sim.render = True
-    manager.env_sim.n_trajectories_per_context = 4
-    manager.env_sim.n_contexts = 2
-    success, entropy, mean_dist = manager.env_sim.test_agent(manager.agent, [1])
-    print(success, entropy, mean_dist)
-    # manager.env_rollout(manager.agent, 10)
-    train_dataset, test_dataset = manager.get_train_and_test_datasets()
-    manager.get_scaler()
-
-    # agent, env_sim = manager.get_agent_and_workspace(model_path, sv_name)

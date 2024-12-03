@@ -56,6 +56,11 @@ pip install pybullet
 pip install -U scikit-learn
 pip install torchsde
 
+
+###Install Dependencies for D3IL-Sim
+conda install -c conda-forge opencv pinocchio -y -q
+conda install -c open3d-admin open3d -y -q
+
 echo Clone Relay policy learning
 git clone https://github.com/google-research/relay-policy-learning
 

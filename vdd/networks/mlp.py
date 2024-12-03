@@ -59,7 +59,7 @@ class MLPNetwork(nn.Module):
         self.layers.append(nn.Linear(self.hidden_dim, self.output_dim))
 
         # build the activation layer
-        self.act = get_activation_fn(activation)
+        self.act = get_activation_fn(activation).to(device)
         self._device = device
         self.layers.to(self._device)
 
