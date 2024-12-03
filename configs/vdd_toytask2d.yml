@@ -109,7 +109,7 @@ params:
 
   experiment_params:
     experiment_name: "toytask2d"
-    model_select_metric: "mse"
+    model_select_metric: "iter"
     num_datapoints: 5000
     datasets_config:
       batch_size: *train_batch_size

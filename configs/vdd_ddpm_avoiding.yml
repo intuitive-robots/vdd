@@ -64,7 +64,7 @@ params:
       cmp_init_std: 1.0
       cmp_minimal_std: 0.0001
       prior_type: "uniform"
-      learn_gating: false
+      learn_gating: true
       gating_hidden_layers: 2
       gating_hidden_dims: 64
       greedy_predict: false

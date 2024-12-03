@@ -31,6 +31,7 @@ class ToyTask2DManager(BaseManager):
         self.test_dataset = Data.TensorDataset(self.states, self.test_actions)
         self.train_loader = Data.DataLoader(self.dataset, batch_size=datasets_config['batch_size'], shuffle=True)
         self.test_loader = Data.DataLoader(self.test_dataset, batch_size=datasets_config['batch_size'], shuffle=True)
+        self.iter = 0
 
     def env_rollout(self, agent, n_episodes: int, **kwargs):
 
@@ -46,7 +47,9 @@ class ToyTask2DManager(BaseManager):
         plt.show()
         agent.train()
 
-        return {'mse': 0}
+        self.iter += 1
+
+        return {'iter': self.iter}
 
     def get_scaler(self, **kwargs):
         return None
