@@ -50,12 +50,13 @@ params:
       goal_dim: &goal_dim 0
       goal_conditional: &goal_conditional false
       num_components: 8
-      cmp_cov_type: "full"
+      cmp_cov_type: "diag"
+      moe_network_type: "residual" # "mlp" or "residual"
       cmp_hidden_dims: 64
       cmp_hidden_layers: 2
       cmp_cov_hidden_dims: 64
       cmp_cov_hidden_layers: 2
-      bias_init_bound: 1.0
+      bias_init_bound: 0.5
       cmp_activation: "mish"
       cmp_init: 'orthogonal'
       cmp_init_std: 1.0

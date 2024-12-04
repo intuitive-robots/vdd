@@ -7,6 +7,8 @@ from vdd.networks.network_utils import inverse_softplus, fill_triangular, diag_b
 def get_gmm_head(n_dim, n_components, init_std, minimal_std, type='full', device='cuda'):
     if type == 'full':
         return FullGMMHead(n_dim, n_components, init_std, minimal_std, device=device)
+    elif type == 'diag':
+        return DiagGMMHead(n_dim, n_components, init_std, minimal_std, device=device)
     else:
         raise NotImplementedError(f"Unknown GMM head type {type}")
 
@@ -120,3 +122,18 @@ class FullGMMHead(AbstractGMMHead):
         chols = diag_bijector(lambda z: self.diag_activation(z + self._pre_activation_shift) + self.minimal_std, chols)
         return means, chols
 
+
+class DiagGMMHead(AbstractGMMHead):
+    def __init__(self, n_dim, n_components, init_std=1., minimal_std=1e-3, device='cuda'):
+        super(DiagGMMHead, self).__init__(n_dim, n_components, init_std, minimal_std, device=device)
+        self.flat_mean_dim = n_dim * n_components
+        self.flat_chol_dim = n_dim * n_components
+
+    def forward(self, flat_mean, flat_chol, train=True):
+        assert flat_mean.shape[-1] == self.flat_mean_dim, f"Expected {self.flat_mean_dim} but got {flat_mean.shape[-1]}"
+        assert flat_chol.shape[-1] == self.flat_chol_dim, f"Expected {self.flat_chol_dim} but got {flat_chol.shape[-1]}"
+        means = einops.rearrange(flat_mean, '... (n d) -> ... n d', n=self.n_components, d=self.n_dim)
+        chols = einops.rearrange(flat_chol, '... (n d) -> ... n d', n=self.n_components, d=self.n_dim)
+        chols = torch.diag_embed(chols)
+        chols = diag_bijector(lambda z: self.diag_activation(z + self._pre_activation_shift) + self.minimal_std, chols)
+        return means, chols

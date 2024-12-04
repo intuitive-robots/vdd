@@ -22,6 +22,53 @@ def str2torchdtype(str_dtype: str = 'float32'):
         raise NotImplementedError
 
 
+def fanin_init(tensor, scale=1 / 3):
+    size = tensor.size()
+    if len(size) == 2:
+        fan_in = size[0]
+    elif len(size) > 2:
+        fan_in = np.prod(size[1:])
+    else:
+        raise Exception("Shape must be have dimension at least 2.")
+    bound = np.sqrt(3 * scale / fan_in)
+    return tensor.data.uniform_(-bound, bound)
+
+
+def initialize_weights(mod, initialization_type, gain: float = 2 ** 0.5, scale=1 / 3, init_w=3e-3):
+    """
+    Weight initializer for the models.
+    Inputs: A model, Returns: none, initializes the parameters
+    """
+    for p in mod.parameters():
+        if initialization_type == "normal":
+            if len(p.data.shape) >= 2:
+                p.data.normal_(init_w)  # 0.01
+            else:
+                p.data.zero_()
+        elif initialization_type == "uniform":
+            if len(p.data.shape) >= 2:
+                p.data.uniform_(-init_w, init_w)
+            else:
+                p.data.zero_()
+        elif initialization_type == "fanin":
+            if len(p.data.shape) >= 2:
+                fanin_init(p, scale)
+            else:
+                p.data.zero_()
+        elif initialization_type == "xavier":
+            if len(p.data.shape) >= 2:
+                nn.init.xavier_uniform_(p.data)
+            else:
+                p.data.zero_()
+        elif initialization_type == "orthogonal":
+            if len(p.data.shape) >= 2:
+                nn.init.orthogonal_(p.data, gain=gain)
+            else:
+                p.data.zero_()
+        else:
+            raise ValueError("Need a valid initialization key")
+
+
 def inverse_softplus(x):
 
     """

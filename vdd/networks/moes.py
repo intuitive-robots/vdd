@@ -8,12 +8,13 @@ import einops
 from vdd.networks.gaussian import get_gmm_head
 from vdd.networks.gating import GatingNet
 from vdd.networks.mlp import ResidualMLPNetwork, MLPNetwork
-from vdd.networks.network_utils import str2torchdtype
+from vdd.networks.network_utils import str2torchdtype, initialize_weights
 
 
 class GaussianMoE(nn.Module):
     def __init__(self, num_components, obs_dim, act_dim, goal_dim,
                  prior_type, cmp_init, cmp_cov_type='diag',
+                 bias_init_bound=0.5,
                  backbone = None,
                  moe_network_type = 'residual',
                  cmp_mean_hidden_dims = 64,
@@ -63,6 +64,10 @@ class GaussianMoE(nn.Module):
                                           activation=cmp_activation,
                                           device=device)
 
+        initialize_weights(self.gmm_mean_net, cmp_init, 0.01, 1e-4)
+        initialize_weights(self.gmm_cov_net, cmp_init, 0.01, 1e-4)
+        self.uniform_distribute_components(bound=bias_init_bound)
+
         if hasattr(self.backbone, 'window_size'):
             self.window_size = self.backbone.window_size
         else:
@@ -81,6 +86,11 @@ class GaussianMoE(nn.Module):
             self._prior = torch.ones(num_components, device=self.device, dtype=self.dtype) / num_components
         else:
             raise NotImplementedError(f"Prior type {prior_type} not implemented.")
+
+
+    def uniform_distribute_components(self, bound=0.5):
+        self.gmm_mean_net.layers[-1].weight.data.fill_(0)
+        self.gmm_mean_net.layers[-1].bias.data = torch.rand(self.act_dim * self.n_components, device=self.device) * 2 * bound - bound
 
     def reset(self):
         self.obs_contexts.clear()

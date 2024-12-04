@@ -21,7 +21,7 @@ num_checkpoints: 2
 
 # Global config
 exp_path: &exp_path "./cw2_results/clean_vdd/avoiding"
-exp_name: &exp_name "clean_vdd_avoiding_8cmp_t1-4_mlp1layer_NoGating"
+exp_name: &exp_name "clean_vdd_diag_avoiding_8cmp_t1-4"
 
 
 # cw2 config
@@ -53,7 +53,7 @@ params:
       goal_conditional: false
       num_components: 8
       moe_network_type: "mlp" # "mlp" or "residual"
-      cmp_cov_type: "full"
+      cmp_cov_type: "diag" # "full" or "diag"
       cmp_mean_hidden_dims: 512
       cmp_mean_hidden_layers: 1
       cmp_cov_hidden_dims: 512
@@ -100,7 +100,6 @@ params:
     vi_batch_size: 2
     train_batch_size: &train_batch_size 1024
     test_batch_size: &test_batch_size 1024
-#    num_workers: &num_workers 4
     test_interval: 10
     env_rollout_interval: 1000
     num_rollouts: 40
@@ -115,7 +114,8 @@ params:
     experiment_name: "d3il_avoiding"
     vision_task: false
     goal_conditioned: false
-    model_path: "/home/hongyi/Codes/demo_acc_rl/d3il/logs/models/avoiding/ddpm_gpt/agent_name=ddpm_transformer,agents.model.n_timesteps=8,agents=ddpm_transformer_agent,group=obstacle_avoidance_ddpm_transformer_seeds,seed=0,simulation.n_cores=40,simulation.n_trajectories=480,window_size=5"
+#    model_path: "/home/hongyi/Codes/demo_acc_rl/d3il/logs/models/avoiding/ddpm_gpt/agent_name=ddpm_transformer,agents.model.n_timesteps=8,agents=ddpm_transformer_agent,group=obstacle_avoidance_ddpm_transformer_seeds,seed=0,simulation.n_cores=40,simulation.n_trajectories=480,window_size=5"
+    model_path: "/home/hongyi/Codes/score_rl/d3il/logs/models/avoiding/ddpm_gpt/agent_name=ddpm_transformer,agents.model.n_timesteps=8,agents=ddpm_transformer_agent,group=obstacle_avoidance_ddpm_transformer_seeds,seed=0,simulation.n_cores=40,simulation.n_trajectories=480,window_size=5"
     sv_name: "eval_best_ddpm.pth"
     model_select_metric: "success_rate"
     datasets_config:
