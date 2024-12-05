@@ -86,7 +86,6 @@ class DDPMScoreFunction(ScoreFunction):
         ### score epsilon(x;sigma) / sqrt(beta)
         ###TODO:FIXME: check if the broadcast is correct
         if self.noise_level_type == 'discrete':
-            # score = - noise / torch.sqrt((self.betas[noise_level]))[..., None, None]
             score = - noise / self.sqrt_one_minus_alphas_cumprod[noise_level][..., None, None]
         elif self.noise_level_type == 'uniform':
             score = - noise / ((noise_level[..., None, None].float() + 1e-4)/self.t_bound)
@@ -100,7 +99,7 @@ class DDPMScoreFunction(ScoreFunction):
 
         if noise_level_type == 'discrete':
             # torch.randint is exclusive of the upper bound
-            sampled_t = torch.randint(self.t_min, self.t_max, samples.shape[:3])
+            sampled_t = torch.randint(self.t_min, self.t_max+1, samples.shape[:3])
         elif noise_level_type == 'uniform':
             sampled_t = torch.rand(samples.shape[:3]) * (self.t_max - self.t_min) + self.t_min
         else:
