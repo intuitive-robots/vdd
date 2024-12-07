@@ -1,6 +1,8 @@
 # [NeurIPS 2024] Official code for "Variational Distillation of Diffusion Policies into Mixture of Experts"
 # (Under construction)
 
+![Alt Text](./static/image/overview.png)
+
 ## Installation Guide
 
 First create a conda environment using the following command
