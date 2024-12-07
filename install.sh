@@ -58,9 +58,9 @@ pip install torchsde
 
 
 ###Install Dependencies for D3IL-Sim
-conda install -c conda-forge opencv pinocchio -y -q
-conda install -c open3d-admin open3d -y -q
-pip install mujoco
+#conda install -c conda-forge opencv pinocchio -y -q
+#conda install -c open3d-admin open3d -y -q
+#pip install mujoco
 
 echo Clone Relay policy learning
 git clone https://github.com/google-research/relay-policy-learning

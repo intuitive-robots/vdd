@@ -32,18 +32,20 @@ To download the dataset for the Relay Kitchen and the Block Push environment fro
 
 2. Unzip the dataset: After downloading, unzip the dataset file and store it.
 
-3. Adjust data paths in the configuration files:
+3. Adjust model paths in the configuration files:
 
-Open the ```./configs/franka_kitchen_main_config.yaml``` and set the data_path argument to ```<path_to_dataset>/relay_kitchen```.
-Open the ./configs/block_push_main_config.yaml and set the data_path argument to ```<path_to_dataset>/multimodal_push_fixed_target```
-After adjusting the data paths in both configuration files, you should be ready to use the datasets in the respective environments.
+For example, for franka kitchen. Open the ```./configs/vdd_beso_kitchen_config.yaml``` and set the model_path argument to ```[Path to Beso]/beso/trained_models/kitchen/c_beso_1```.
 
 ---
 ## Run Experiment
 ```
 python scripts/training.py configs/<config_name>.yml 
 ```
-For example, to run the experiment on the Franka Kitchen environment, run the following command:
+For example, to run the 2D toy experiment, run the following command:
+```
+python scripts/training.py configs/vdd_toytask2d.yml
+``` 
+To run the experiment on the Franka Kitchen environment, run the following command:
 ```
 python scripts/training.py configs/vdd_beso_kitchen.yml
 ```

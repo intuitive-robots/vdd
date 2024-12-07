@@ -10,7 +10,7 @@ import torch.utils.data as Data
 
 from vdd.workspaces.base_manager import BaseManager
 from vdd.score_functions.beso_score import BesoScoreFunction
-from vdd.score_functions.ddpm_score import DDPMScoreFunction
+# from vdd.score_functions.ddpm_score import DDPMScoreFunction
 
 from matplotlib import pyplot as plt
 
